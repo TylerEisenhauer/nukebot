@@ -17,17 +17,22 @@ export async function initializeBlizzardClient() {
             baseURL: 'https://us.api.blizzard.com',
             headers: {
                 Authorization: `Bearer ${authRequest.access_token}`
-            }
+            },
+            timeout: 5000
         })
     }
 }
 
 export async function getCharacter(fields: string[], realm: string, name: string): Promise<Character> {
-    const {data} = await apiClient.get<Character>(`/wow/character/${realm}/${name}`, {
-        params: {
-            fields: fields.toString()
-        }
-    })
-
-    return data
+    try {
+        const {data} = await apiClient.get<Character>(`/wow/character/${realm}/${name}`, {
+            params: {
+                fields: fields.toString()
+            }
+        })
+        return data
+    } catch (e) {
+        const {data} = e.response
+        return data
+    }
 }

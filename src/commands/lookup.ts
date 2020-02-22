@@ -8,12 +8,15 @@ import {getCharacterData} from '../api/raiderio'
 
 export async function lookup(args: string[], message: Message) {
     const character: Character = await getCharacter(['progression', 'talents', 'items'], args[0], args[1])
+    if (character.status === 'nok') {
+        return await message.channel.send(character.reason)
+    }
     const spec: Spec = find(character.talents, (x: Talents) => {
         return x.selected
     }).spec
     const raiderIOData: RaiderIOCharacterData = await getCharacterData(['mythic_plus_best_runs','mythic_plus_scores_by_season:current'], args[0], args[1])
 
-    await message.channel.send({
+    return await message.channel.send({
         embed: {
             author: {
                 name: `${character.name} - ${character.realm} | ${spec.name} ${Class[character.class]} | ${character.items.averageItemLevelEquipped} ilvl | ${character.items.neck.azeriteItem.azeriteLevel} HoA`,

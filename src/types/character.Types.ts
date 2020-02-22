@@ -16,6 +16,8 @@ export interface Character {
     progression: Progression
     totalHonorableKills: number
     id: number
+    status: string
+    reason: string
 }
 
 export interface Progression {
