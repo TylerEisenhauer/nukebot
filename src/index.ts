@@ -2,13 +2,14 @@ import {Client, Message} from 'discord.js'
 import {commandHandler} from './handlers/command'
 import {config} from 'dotenv-flow'
 import {parseArgs} from './helpers/parsing'
+import {initializeAPIClients} from './api/init'
 
 config()
 const client = new Client()
 const prefix = '!'
 
 client.on('ready', async () => {
-    console.log('Bot Online')
+    await initializeAPIClients()
     await client.user.setPresence({
         status: 'online',
         game: {
@@ -16,6 +17,7 @@ client.on('ready', async () => {
             type: 'PLAYING',
         },
     })
+    console.log('Bot Online')
 })
 
 client.on('message', async (message: Message) => {
