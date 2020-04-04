@@ -9,10 +9,10 @@ export async function move(args: string[], message: Message) {
         return await message.channel.send('Mention exactly TWO channels retard.')
     }
 
-    const fromChannel: VoiceChannel = message.guild.channels.find((x) => {
+    const fromChannel: VoiceChannel = message.guild.channels.cache.find((x) => {
         return x.type === 'voice' && x.name === args[0]
     }) as VoiceChannel
-    const toChannel: VoiceChannel = message.guild.channels.find((x) => {
+    const toChannel: VoiceChannel = message.guild.channels.cache.find((x) => {
         return x.type === 'voice' && x.name === args[1]
     }) as VoiceChannel
 
@@ -22,7 +22,7 @@ export async function move(args: string[], message: Message) {
         await message.channel.send(`Helping ${fromChannel.members.size} clowns meander to ${toChannel.name}`)
 
         await Promise.all(users.map((async (user: GuildMember) => {
-            await user.setVoiceChannel(toChannel.id)
+            await user.voice.setChannel(toChannel.id)
         })))
     } else {
         return await message.channel.send('At least one of those channels doesn\'t exist')

@@ -12,7 +12,7 @@ client.on('ready', async () => {
     await initializeAPIClients()
     await client.user.setPresence({
         status: 'online',
-        game: {
+        activity: {
             name: 'Kicking Doors and Slapping Whores',
             type: 'PLAYING'
         }
@@ -31,4 +31,10 @@ client.on('message', async (message: Message) => {
     return await commandHandler(command, args, message)
 })
 
-client.login(process.env.DISCORD_TOKEN)
+
+client.login(process.env.DISCORD_TOKEN).then(() => {
+    console.log('Login Success')
+}).catch((e) => {
+    console.log(e)
+})
+

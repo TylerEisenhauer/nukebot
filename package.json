@@ -1,9 +1,10 @@
 {
   "dependencies": {
     "axios": "^0.19.2",
-    "discord.js": "11.5.1",
+    "discord.js": "^12.1.1",
     "dotenv": "^8.2.0",
     "dotenv-flow": "^3.1.0",
+    "ffmpeg-static": "^4.0.1",
     "lodash": "^4.17.15",
     "moment": "^2.24.0"
   },
@@ -13,7 +14,7 @@
     "@types/moment": "^2.13.0",
     "@types/node": "^13.9.8",
     "nodemon": "^2.0.2",
-    "webpack": "^4.41.6",
+    "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11"
   },
   "scripts": {
