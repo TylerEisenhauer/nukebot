@@ -65,8 +65,9 @@ stages:
               sshEndpoint: 'Nighthawk'
               runOptions: 'commands'
               commands: |
-                sudo 7z x $(TargetFolder)/NukeBot.zip
-                sudo rm -rf $(TargetFolder)/NukeBot.zip
-                sudo chown discord $(TargetFolder)/NukeBot/*
+                cd $(TargetFolder)
+                sudo 7z x NukeBot.zip
+                sudo rm -rf NukeBot.zip
+                sudo chown discord /NukeBot/*
                 sudo systemctl restart discord-bot
             displayName: 'Restart bot service'
