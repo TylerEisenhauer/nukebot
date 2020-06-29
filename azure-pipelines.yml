@@ -24,7 +24,15 @@ stages:
               tsc
             displayName: 'Yarn install and transpile'
 
-          - publish: $(System.DefaultWorkingDirectory)
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+              includeRootFolder: true
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/NukeBot.zip'
+              replaceExistingArchive: true
+
+          - publish: $(Build.ArtifactStagingDirectory)/NukeBot.zip
             artifact: NukeBot
             displayName: 'Publish Artifacts'
 
@@ -43,9 +51,7 @@ stages:
             inputs:
               sshEndpoint: 'Nighthawk'
               sourceFolder: '$(Pipeline.Workspace)/NukeBot'
-              contents: |
-                node_modules/**
-                src/**.js
+              contents: NukeBot.zip
               targetFolder: '$(TargetFolder)'
               readyTimeout: '20000'
             displayName: 'Copy files to server'
@@ -55,6 +61,8 @@ stages:
               sshEndpoint: 'Nighthawk'
               runOptions: 'commands'
               commands: |
-                sudo chown discord $(TargetFolder)/*
+                sudo 7z x $(TargetFolder)/NukeBot.zip
+                sudo rm -rf $(TargetFolder)/NukeBot.zip
+                sudo chown discord $(TargetFolder)/NukeBot/*
                 sudo systemctl restart discord-bot
             displayName: 'Restart bot service'
