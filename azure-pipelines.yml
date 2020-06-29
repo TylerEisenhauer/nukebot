@@ -24,6 +24,11 @@ stages:
               tsc
             displayName: 'Yarn install and transpile'
 
+          - script: |
+                cd $(System.DefaultWorkingDirectory)
+                pwd
+                ls
+                
           - task: ArchiveFiles@2
             inputs:
               rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
