@@ -44,8 +44,8 @@ stages:
               sshEndpoint: 'Nighthawk'
               sourceFolder: '$(Pipeline.Workspace)/NukeBot'
               contents: |
-                node_modules
-                src/*.js
+                node_modules/**
+                src/**.js
               targetFolder: '$(TargetFolder)'
               readyTimeout: '20000'
             displayName: 'Copy files to server'
