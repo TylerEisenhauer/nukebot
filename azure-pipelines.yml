@@ -46,10 +46,6 @@ stages:
           - download: current
             artifact: NukeBot
             displayName: 'Download Artifacts'
-              
-          - script: |
-                cd $(Pipeline.Workspace)/NukeBot
-                ls
                 
           - task: CopyFilesOverSSH@0
             inputs:
@@ -66,7 +62,7 @@ stages:
               runOptions: 'commands'
               commands: |
                 cd $(TargetFolder)
-                sudo 7z x NukeBot.zip
+                sudo 7z x NukeBot.zip -aoa
                 sudo rm -rf NukeBot.zip
                 sudo chown discord /NukeBot/*
                 sudo systemctl restart discord-bot
