@@ -55,6 +55,6 @@ stages:
               sshEndpoint: 'Nighthawk'
               runOptions: 'commands'
               commands: |
-                sudo chown discord $(TargetFolder)/index.js
+                sudo chown discord $(TargetFolder)/*
                 sudo systemctl restart discord-bot
             displayName: 'Restart bot service'
