@@ -11,7 +11,7 @@ stages:
         steps:
           - task: NodeTool@0
             inputs:
-              versionSpec: '13.x'
+              versionSpec: '14.x'
             displayName: 'Install Node.js'
 
           - task: YarnInstaller@3
@@ -21,15 +21,15 @@ stages:
 
           - script: |
               yarn install
-              yarn build
-            displayName: 'Yarn install and build'
+              tsc
+            displayName: 'Yarn install and transpile'
 
-          - publish: $(System.DefaultWorkingDirectory)/build
+          - publish: $(System.DefaultWorkingDirectory)
             artifact: NukeBot
             displayName: 'Publish Artifacts'
 
   - stage: DeployProd
-    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    # condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
     displayName: 'Deploy Production'
     dependsOn: Build
     jobs:
@@ -43,8 +43,11 @@ stages:
             inputs:
               sshEndpoint: 'Nighthawk'
               sourceFolder: '$(Pipeline.Workspace)/NukeBot'
-              contents: 'index.js'
-              targetFolder: $(TargetFolder)
+              contents: |
+                node_modules
+                src/*.js
+              targetFolder: '$(TargetFolder)'
+              readyTimeout: '20000'
             displayName: 'Copy files to server'
 
           - task: SSH@0
