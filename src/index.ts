@@ -23,6 +23,12 @@ client.on('ready', async () => {
 client.on('message', async (message: Message) => {
     if (message.author.bot) return
     if (!message.guild) return
+    let performGamaAlert: boolean = process.env.PERFORM_GAMA_ALERT === 'true'
+
+    if (performGamaAlert && message.author.id === process.env.GAMA_ID && message.channel.id === process.env.ALERT_CHANNEL_ID) {
+        return await commandHandler('gamapost', null, message)
+    }
+
     if (!message.content.startsWith(prefix)) return
 
     const args: string[] = parseArgs(prefix, message.content)
