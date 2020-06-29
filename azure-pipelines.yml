@@ -37,7 +37,7 @@ stages:
             displayName: 'Publish Artifacts'
 
   - stage: DeployProd
-    # condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
     displayName: 'Deploy Production'
     dependsOn: Build
     jobs:
