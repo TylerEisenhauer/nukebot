@@ -47,6 +47,10 @@ stages:
             artifact: NukeBot
             displayName: 'Download Artifacts'
               
+          - script: |
+                cd $(Pipeline.Workspace)/NukeBot
+                ls
+                
           - task: CopyFilesOverSSH@0
             inputs:
               sshEndpoint: 'Nighthawk'
