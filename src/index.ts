@@ -1,13 +1,37 @@
-import {Client, Collection, Message, MessageReaction, Permissions, User} from 'discord.js'
+import {Client, Message, MessageReaction, Permissions, User, WebhookClient} from 'discord.js'
 import {commandHandler} from './handlers/command'
 import {config} from 'dotenv-flow'
 import {parseArgs} from './helpers/parsing'
 import {initializeAPIClients} from './config/config'
+import * as puppeteer from 'puppeteer'
 
 config()
 const client = new Client()
+const webhookClient = new WebhookClient(process.env.WEBHOOK_ID, process.env.WEBHOOK_TOKEN)
 const prefix = '!'
 let cache: string[] = []
+let existingDoc: string
+
+const statusCheck = async () => {
+    try {
+        const browser = await puppeteer.launch()
+        const page = await browser.newPage()
+        await page.goto('https://novelkeys.xyz/collections/extras-group-buy')
+        const newDoc: string = await page.evaluate(() => {
+            return document.querySelector('#Collection').innerHTML
+        })
+        await browser.close()
+        if (newDoc !== existingDoc) {
+            existingDoc = newDoc
+            await webhookClient.send('Page Updated')
+        }
+    } catch (e) {
+        console.log(e)
+        await webhookClient.send(`Encountered an error\n${e}`)
+    }
+    setTimeout(statusCheck, 1000 * 60 * 30)
+}
+statusCheck()
 
 client.on('ready', async () => {
     await initializeAPIClients()
