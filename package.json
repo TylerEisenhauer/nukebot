@@ -26,7 +26,7 @@
   "scripts": {
     "build": "yarn clean && tsc && webpack",
     "clean": "rm -rf build",
-    "start": "tsc && NODE_ENV=development nodemon src/index.js",
+    "start": "tsc && NODE_ENV=development nodemon src/index.js --ignore raffle.json",
     "start-prod": "yarn build && nodemon build/index.js"
   }
 }

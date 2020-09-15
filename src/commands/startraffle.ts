@@ -7,7 +7,7 @@ export async function startraffle(args: string[], message: Message) {
         return await message.channel.send(`You don't have permission to control raffles`)
     }
 
-    if (fs.existsSync('raffle.db')) {
+    if (fs.existsSync('raffle.json')) {
         return await message.channel.send('A raffle is already being run, use the command !endraffle to finish it (THIS DOES NOT PICK A WINNER, USE !pickwinner FOR THIS)')
     }
 
@@ -20,10 +20,12 @@ export async function startraffle(args: string[], message: Message) {
     }
 
     const raffle: RaffleDB = {
-        message: args[1]
+        channel: message.mentions.channels.first().id,
+        message: args[1],
+        entries: []
     }
 
-    fs.writeFile('raffle.db', JSON.stringify(raffle, null, 2),async (err) => {
+    fs.writeFile('raffle.json', JSON.stringify(raffle, null, 2),async (err) => {
         if (err) {
             console.log(err)
             return await message.channel.send(`Error writing db file:\n${err}`)

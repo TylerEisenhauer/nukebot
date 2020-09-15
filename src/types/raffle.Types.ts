@@ -1,9 +1,11 @@
 export interface Entry {
-    id: number
+    id: string
     proof: any
 }
 
 export interface RaffleDB {
-    message: string
+    channel: string
     entries?: Entry[]
+    message: string
+    winner?: Entry
 }

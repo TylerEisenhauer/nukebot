@@ -5,6 +5,9 @@ import {gamapost} from "../commands/gamapost"
 import {clear} from "../commands/clear"
 import {pwnpost} from "../commands/pwnpost"
 import {startraffle} from "../commands/startraffle";
+import {enter} from "../commands/enter";
+import {pickwinner} from "../commands/pickwinner";
+import {endraffle} from "../commands/endraffle";
 
 export async function commandHandler(command: string, args: string[], message: Message) {
     switch (command) {
@@ -16,6 +19,12 @@ export async function commandHandler(command: string, args: string[], message: M
             return await clear(args, message)
         case 'startraffle':
             return await startraffle(args, message)
+        case 'enter':
+            return await enter(args, message)
+        case 'pickwinner':
+            return await pickwinner(args, message)
+        case 'endraffle':
+            return await endraffle(args, message)
         case 'gamapost':
             return await gamapost(message)
         case 'pwnpost':
