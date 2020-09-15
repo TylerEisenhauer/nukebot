@@ -12,12 +12,8 @@ export async function pickwinner(args: string[], message: Message) {
         return await message.channel.send('No raffle is currently running')
     }
 
-    const raffle: RaffleDB = JSON.parse(fs.readFileSync('raffle.json', 'utf8'))
-
-    if (message.channel.id !== raffle.channel) return await message.channel.send(`This is not the correct channel for the currently running raffle head over to <#${raffle.channel}>`)
-
+    let raffle: RaffleDB = JSON.parse(fs.readFileSync('raffle.json', 'utf8'))
     const winner: Entry = sample(raffle.entries)
-
     raffle.winner = winner
 
     fs.writeFile('raffle.json', JSON.stringify(raffle, null, 2),async (err) => {
