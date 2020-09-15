@@ -4,6 +4,7 @@ import {lookup} from "../commands/lookup"
 import {gamapost} from "../commands/gamapost"
 import {clear} from "../commands/clear"
 import {pwnpost} from "../commands/pwnpost"
+import {startraffle} from "../commands/startraffle";
 
 export async function commandHandler(command: string, args: string[], message: Message) {
     switch (command) {
@@ -13,6 +14,8 @@ export async function commandHandler(command: string, args: string[], message: M
             return await lookup(args, message)
         case 'clear':
             return await clear(args, message)
+        case 'startraffle':
+            return await startraffle(args, message)
         case 'gamapost':
             return await gamapost(message)
         case 'pwnpost':
