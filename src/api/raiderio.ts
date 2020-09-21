@@ -1,5 +1,5 @@
 import axios, {AxiosInstance} from 'axios'
-import {RaiderIOCharacterData} from "../types/raiderio.Types"
+import {RaiderIOCharacterData} from '../types/raiderio.Types'
 
 let apiClient: AxiosInstance
 

@@ -1,5 +1,5 @@
 import axios, {AxiosInstance} from 'axios'
-import {Character, CharacterMedia, Encounters, Item} from "../types/character.Types"
+import {Character, CharacterMedia, Encounters, Item} from '../types/character.Types'
 
 let apiClient: AxiosInstance
 

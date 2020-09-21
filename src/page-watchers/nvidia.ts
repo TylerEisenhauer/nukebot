@@ -1,6 +1,6 @@
-import * as puppeteer from "puppeteer";
-import {isEqual} from "lodash";
-import {WebhookClient} from "discord.js";
+import puppeteer from 'puppeteer';
+import {isEqual} from 'lodash';
+import {WebhookClient} from 'discord.js';
 
 let existingProduct: string
 
