@@ -16,8 +16,6 @@ export async function pickwinner(args: string[], message: Message) {
 
     const entries: IRaffleEntry[] = await RaffleEntry.find({raffle: currentRaffle._id})
 
-    console.log(entries)
-
     if (entries.length === 0) return await message.channel.send('Raffle has no entries')
 
     const winner: IRaffleEntry = sample(entries)

@@ -9,8 +9,6 @@ export async function startraffle(args: string[], message: Message) {
 
     const currentRaffle = await Raffle.findOne({endedAt: null})
 
-    console.log(currentRaffle)
-
     if (currentRaffle) {
         return await message.channel.send('A raffle is already being run, use the command !endraffle to finish it (THIS DOES NOT PICK A WINNER, USE !pickwinner FOR THIS)')
     }
@@ -24,14 +22,13 @@ export async function startraffle(args: string[], message: Message) {
     }
 
     try {
-        const raffle = await Raffle.create({
+        await Raffle.create({
             startedAt: new Date(),
             endedAt: null,
             channel: message.mentions.channels.first().id,
             message: args[1],
             winner: null
         })
-        console.log(raffle)
         await message.mentions.channels.first().send(`New Raffle!\n\n${args[1]}`)
     } catch (e) {
         return await message.channel.send(`Error writing to db:\n${e}`)

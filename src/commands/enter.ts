@@ -22,14 +22,13 @@ export async function enter(args: string[], message: Message) {
     }
 
     try {
-        const raffleEntry = await RaffleEntry.create({
+        await RaffleEntry.create({
             discordId: message.author.id,
             name: message.author.username,
             proof: message.attachments.first().attachment,
             raffle: currentRaffle._id,
             time: new Date()
         })
-        console.log(raffleEntry)
         return await message.channel.send(`<@${message.member.id}> your entry has been received.`)
     } catch (e) {
         return await message.channel.send(`Error writing to db:\n${e}`)

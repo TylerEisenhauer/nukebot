@@ -12,7 +12,7 @@ export async function endraffle(args: string[], message: Message) {
         return await message.channel.send('No raffle is currently running')
     }
 
-    await message.reply(`Are you sure you want to end the current raffle entries CAN NOT be recovered. Reply 'yes' within 30 seconds to end.`)
+    await message.reply(`Are you sure you want to end the current raffle? Reply 'yes' within 30 seconds to end.`)
 
     const collector: MessageCollector = new MessageCollector(<TextChannel>message.channel, (m) => m.author.id === message.author.id, {time: 1000 * 30})
     collector.on('collect', async (m: Message) => {
