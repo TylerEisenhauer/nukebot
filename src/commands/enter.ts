@@ -1,20 +1,19 @@
 import {Message} from "discord.js"
-import * as fs from "fs"
-import {Entry, RaffleDB} from "../types/raffle.Types"
-import {find} from 'lodash'
+import Raffle, {IRaffle} from "../types/mongoose/raffle";
+import RaffleEntry, {IRaffleEntry} from "../types/mongoose/raffleentry";
 
 export async function enter(args: string[], message: Message) {
-    if (!fs.existsSync('raffle.json')) {
+    const currentRaffle: IRaffle = await Raffle.findOne({endedAt: null})
+
+    if (!currentRaffle) {
         return await message.channel.send('No raffle is currently running')
     }
 
-    const raffle: RaffleDB = JSON.parse(fs.readFileSync('raffle.json', 'utf8'))
+    if (message.channel.id !== currentRaffle.channel) return await message.channel.send(`This is not the correct channel for the currently running raffle head over to <#${currentRaffle.channel}>`)
 
-    if (message.channel.id !== raffle.channel) return await message.channel.send(`This is not the correct channel for the currently running raffle head over to <#${raffle.channel}>`)
+    const entry: IRaffleEntry = await RaffleEntry.findOne({discordId: message.author.id, raffle: currentRaffle._id})
 
-    if (find(raffle.entries, (x: Entry) => {
-        return x.id === message.member.id
-    })) {
+    if (entry) {
         return await message.reply('You have already entered this raffle')
     }
 
@@ -22,17 +21,17 @@ export async function enter(args: string[], message: Message) {
         return await message.reply('Enter ONE proof screenshot')
     }
 
-    raffle.entries.push({
-        id: message.member.id,
-        proof: message.attachments.first().attachment
-    })
-
-    fs.writeFile('raffle.json', JSON.stringify(raffle, null, 2),async (err) => {
-        if (err) {
-            console.log(err)
-            return await message.channel.send(`Error writing db file:\n${err}`)
-        }
-
+    try {
+        const raffleEntry = await RaffleEntry.create({
+            discordId: message.author.id,
+            name: message.author.username,
+            proof: message.attachments.first().attachment,
+            raffle: currentRaffle._id,
+            time: new Date()
+        })
+        console.log(raffleEntry)
         return await message.channel.send(`<@${message.member.id}> your entry has been received.`)
-    })
+    } catch (e) {
+        return await message.channel.send(`Error writing to db:\n${e}`)
+    }
 }

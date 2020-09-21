@@ -1,12 +1,14 @@
 import {Message, MessageCollector, Permissions, TextChannel} from "discord.js";
-import * as fs from "fs";
+import Raffle from "../types/mongoose/raffle";
 
 export async function endraffle(args: string[], message: Message) {
     if (!message.member.hasPermission(Permissions.FLAGS.ADMINISTRATOR)) {
         return await message.channel.send(`You don't have permission to control raffles`)
     }
 
-    if (!fs.existsSync('raffle.json')) {
+    const currentRaffle = await Raffle.findOne({endedAt: null})
+
+    if (!currentRaffle) {
         return await message.channel.send('No raffle is currently running')
     }
 
@@ -15,14 +17,14 @@ export async function endraffle(args: string[], message: Message) {
     const collector: MessageCollector = new MessageCollector(<TextChannel>message.channel, (m) => m.author.id === message.author.id, {time: 1000 * 30})
     collector.on('collect', async (m: Message) => {
         if (m.content === 'yes') {
-            fs.unlink('raffle.json', async (err) => {
-                if (err) {
-                    console.log(err)
-                    return await m.channel.send(`Error deleting raffle db file:\n\n${err}`)
-                } else {
-                    return await m.channel.send(`Raffle has been ended`)
-                }
-            })
+            try {
+                await currentRaffle.updateOne({
+                    endedAt: new Date()
+                })
+                return await m.channel.send(`Raffle has been ended`)
+            } catch (e) {
+                return await message.channel.send(`Error writing to db:\n${e}`)
+            }
         }
     })
 }
