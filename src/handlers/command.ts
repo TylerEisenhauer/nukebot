@@ -8,6 +8,7 @@ import {startraffle} from '../commands/startraffle';
 import {enter} from '../commands/enter';
 import {pickwinner} from '../commands/pickwinner';
 import {endraffle} from '../commands/endraffle';
+import {sales} from '../commands/sales';
 
 export async function commandHandler(command: string, args: string[], message: Message) {
     switch (command) {
@@ -29,6 +30,8 @@ export async function commandHandler(command: string, args: string[], message: M
             return await gamapost(message)
         case 'pwnpost':
             return await pwnpost(message)
+        case 'sales':
+            return await sales(args, message)
         default:
             return await message.channel.send('I have no idea what the FUCK you\'re talking about')
     }
