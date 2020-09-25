@@ -84,11 +84,15 @@ async function askQuestion<T>(question: string, message: Message): Promise<strin
 
 async function listSales(args: string[], message: Message) {
     try {
-        const date: string = args[0] ? args[0] : new Date().toString()
-        const weekStart = moment.utc(date).startOf('day').day('Tuesday').toDate()
-        const weekEnd = moment.utc(date).startOf('day').day('Tuesday').add(6, 'days').toDate()
+        const date: moment.Moment = args[0] ? moment.utc(args[0]) : moment.utc()
+
+        if (!date.isValid()) return await message.channel.send('Invalid Date')
+
+        const weekStart = date.startOf('day').day('Tuesday').toDate()
+        const weekEnd = date.startOf('day').day('Tuesday').add(6, 'days').toDate()
         const sales: ISale[] = await Sale.find({date: {$gte: weekStart, $lte: weekEnd}})
         if (sales.length) {
+            await message.channel.send(`Sales for the week of ${moment.utc(weekStart).format('l')}-${moment.utc(weekEnd).format('l')}`)
             return sales.forEach((sale: ISale) => {
                 const embed: MessageEmbed = createEmbed(sale)
 
@@ -145,10 +149,10 @@ function createEmbed(sale: ISale) {
     return new MessageEmbed()
         .setColor(3447003)
         .setAuthor(`${sale.buyerName} | ${sale.buyerBattleTag} | ${moment.utc(sale.date).format('l')}`)
-        .setDescription(sale.service)
-        .addField('Price', sale.price, true)
-        .addField('Amount Collected', sale.amountCollected, true)
-        .addField('Amount Owed', sale.price - sale.amountCollected, true)
+        .setDescription(`**${sale.service}**`)
+        .addField('Price', sale.price.toLocaleString(), true)
+        .addField('Amount Collected', sale.amountCollected.toLocaleString(), true)
+        .addField('Amount Owed', (sale.price - sale.amountCollected).toLocaleString(), true)
         .setFooter(`Reference | ${sale._id}`)
         .setThumbnail('https://i.imgur.com/4AiXzf8.jpg')
 }
