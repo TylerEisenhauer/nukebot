@@ -2,6 +2,7 @@ import {Message, Permissions, MessageEmbed, MessageCollector, TextChannel} from 
 import Sale, {ISale} from '../types/mongoose/sale'
 import moment from 'moment'
 import mongoose from "mongoose"
+import {isFinite} from 'lodash'
 
 
 export async function sales(args: string[], message: Message) {
@@ -24,18 +25,61 @@ async function addSale(args: string[], message: Message) {
         return await message.channel.send(`You don't have permission to control sales`)
     }
 
+    let sale: any = {}
+
+    while (!sale.buyerName) {
+        sale.buyerName = await askQuestion('What is the buyers name?', message)
+    }
+
+    while (!sale.buyerBattleTag) {
+        sale.buyerBattleTag = await askQuestion('What is the buyers battletag?', message)
+    }
+
+    while (!sale.service) {
+        sale.service = await askQuestion('What are they buying?', message)
+    }
+
+    while (!sale.date) {
+        const date = moment.utc(await askQuestion('What day? (MM/DD/YYYY)', message))
+        if (date.isValid()) {
+            sale.date = date.toDate()
+        } else {
+            await message.channel.send('Invalid Date')
+        }
+    }
+
+    while (!sale.price) {
+        const price = parseInt(await askQuestion('How much is the sale? (numbers only)', message))
+        if (isFinite(price)) {
+            sale.price = price
+        } else {
+            await message.channel.send('Invalid Price')
+        }
+    }
+
+    while (!sale.amountCollected) {
+        const price = parseInt(await askQuestion('How much have you collected as a deposit? (numbers only, enter 0 for non)', message))
+        if (isFinite(price)) {
+            sale.amountCollected = price
+        } else {
+            await message.channel.send('Invalid Price')
+        }
+    }
+
     try {
-        await Sale.create({
-            date: moment.utc(args[0]).startOf('day').toDate(),
-            buyerName: args[1],
-            buyerBattleTag: args[2],
-            price: args[3],
-            amountCollected: args[4]
-        })
+        await Sale.create(sale)
         await message.channel.send(`Sale created`)
     } catch (e) {
         return await message.channel.send(`Error Creating Sale:\n${e}`)
     }
+}
+
+async function askQuestion<T>(question: string, message: Message): Promise<string> {
+    await message.channel.send(question)
+
+    const response = await message.channel.awaitMessages((m) => m.author.id === message.author.id, {max: 1})
+
+    return response.first().content
 }
 
 async function listSales(args: string[], message: Message) {
@@ -101,7 +145,7 @@ function createEmbed(sale: ISale) {
     return new MessageEmbed()
         .setColor(3447003)
         .setAuthor(`${sale.buyerName} | ${sale.buyerBattleTag} | ${moment.utc(sale.date).format('l')}`)
-        .setDescription('Sale Information')
+        .setDescription(sale.service)
         .addField('Price', sale.price, true)
         .addField('Amount Collected', sale.amountCollected, true)
         .addField('Amount Owed', sale.price - sale.amountCollected, true)

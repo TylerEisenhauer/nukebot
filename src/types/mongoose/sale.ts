@@ -6,14 +6,16 @@ export interface ISale extends Document{
     buyerName: string
     date: Date
     price: number
+    service: string
 }
 
 const SaleSchema: Schema = new Schema({
-    amountCollected: {type: Number, required: false},
+    amountCollected: {type: Number, required: true},
     buyerBattleTag: {type: String, required: true},
     buyerName: {type: String, required: true},
     date: {type: Date, required: true},
-    price: {type: Number, required: false}
+    price: {type: Number, required: true},
+    service: {type: String, required: true}
 })
 
 export default mongoose.model<ISale>('Sale', SaleSchema)
