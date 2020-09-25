@@ -1,5 +1,5 @@
-import {Message, Permissions} from 'discord.js';
-import Raffle from '../types/mongoose/raffle';
+import {Message, Permissions} from 'discord.js'
+import Raffle from '../types/mongoose/raffle'
 
 
 export async function startraffle(args: string[], message: Message) {

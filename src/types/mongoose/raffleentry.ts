@@ -1,5 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import {IRaffle} from './raffle';
+import mongoose, { Schema, Document } from 'mongoose'
+import {IRaffle} from './raffle'
 
 export interface IRaffleEntry extends Document {
     discordId: string

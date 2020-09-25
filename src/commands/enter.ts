@@ -1,6 +1,6 @@
 import {Message} from 'discord.js'
-import Raffle, {IRaffle} from '../types/mongoose/raffle';
-import RaffleEntry, {IRaffleEntry} from '../types/mongoose/raffleentry';
+import Raffle, {IRaffle} from '../types/mongoose/raffle'
+import RaffleEntry, {IRaffleEntry} from '../types/mongoose/raffleentry'
 
 export async function enter(args: string[], message: Message) {
     const currentRaffle: IRaffle = await Raffle.findOne({endedAt: null})

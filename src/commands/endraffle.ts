@@ -1,5 +1,5 @@
-import {Message, MessageCollector, Permissions, TextChannel} from 'discord.js';
-import Raffle from '../types/mongoose/raffle';
+import {Message, MessageCollector, Permissions, TextChannel} from 'discord.js'
+import Raffle from '../types/mongoose/raffle'
 
 export async function endraffle(args: string[], message: Message) {
     if (!message.member.hasPermission(Permissions.FLAGS.ADMINISTRATOR)) {

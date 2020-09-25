@@ -1,5 +1,5 @@
-import mongoose, {Schema, Document} from 'mongoose';
-import {IRaffleEntry} from './raffleentry';
+import mongoose, {Schema, Document} from 'mongoose'
+import {IRaffleEntry} from './raffleentry'
 
 export interface IRaffle extends Document{
     startedAt: Date

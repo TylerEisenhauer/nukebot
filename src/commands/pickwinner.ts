@@ -1,7 +1,7 @@
-import {Message, Permissions, TextChannel} from 'discord.js';
-import {sample} from 'lodash';
-import Raffle from '../types/mongoose/raffle';
-import RaffleEntry, {IRaffleEntry} from '../types/mongoose/raffleentry';
+import {Message, Permissions, TextChannel} from 'discord.js'
+import {sample} from 'lodash'
+import Raffle from '../types/mongoose/raffle'
+import RaffleEntry, {IRaffleEntry} from '../types/mongoose/raffleentry'
 
 export async function pickwinner(args: string[], message: Message) {
     if (!message.member.hasPermission(Permissions.FLAGS.ADMINISTRATOR)) {

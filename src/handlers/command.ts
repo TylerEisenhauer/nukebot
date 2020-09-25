@@ -4,11 +4,11 @@ import {lookup} from '../commands/lookup'
 import {gamapost} from '../commands/gamapost'
 import {clear} from '../commands/clear'
 import {pwnpost} from '../commands/pwnpost'
-import {startraffle} from '../commands/startraffle';
-import {enter} from '../commands/enter';
-import {pickwinner} from '../commands/pickwinner';
-import {endraffle} from '../commands/endraffle';
-import {sales} from '../commands/sales';
+import {startraffle} from '../commands/startraffle'
+import {enter} from '../commands/enter'
+import {pickwinner} from '../commands/pickwinner'
+import {endraffle} from '../commands/endraffle'
+import {sales} from '../commands/sales'
 
 export async function commandHandler(command: string, args: string[], message: Message) {
     switch (command) {
