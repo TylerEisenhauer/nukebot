@@ -1,9 +1,9 @@
 import {Message, Permissions, MessageEmbed, MessageCollector, TextChannel} from 'discord.js'
-import Sale, {ISale} from '../types/mongoose/sale'
+import {Sale} from '../types/sale'
 import moment from 'moment'
 import mongoose from "mongoose"
 import {isFinite} from 'lodash'
-
+import nukebotAPI from '../api/nukebot'
 
 export async function sales(args: string[], message: Message) {
     const command: string = args.shift().toLowerCase()
@@ -25,7 +25,7 @@ async function addSale(args: string[], message: Message) {
         return await message.channel.send(`You don't have permission to control sales`)
     }
 
-    let sale: any = {}
+    let sale: Sale = {}
 
     while (!sale.buyerName) {
         sale.buyerName = await askQuestion('What is the buyers name?', message)
@@ -69,7 +69,7 @@ async function addSale(args: string[], message: Message) {
     }
 
     try {
-        const embed = createEmbed(await Sale.create(sale))
+        const embed = createEmbed(await nukebotAPI.createSale(sale))
         await message.channel.send(`Sale created`, embed)
     } catch (e) {
         return await message.channel.send(`Error Creating Sale:\n${e}`)
@@ -86,16 +86,16 @@ async function askQuestion<T>(question: string, message: Message): Promise<strin
 
 async function listSales(args: string[], message: Message) {
     try {
+        //TODO: if this falls on monday it does not work correctly
         const date: moment.Moment = args[0] ? moment.utc(args[0]) : moment.utc()
-
         if (!date.isValid()) return await message.channel.send('Invalid Date')
+        const weekStart = moment(date).startOf('day').day('Tuesday').toDate()
+        const weekEnd = moment(weekStart).add(6, 'days').toDate()
 
-        const weekStart = date.startOf('day').day('Tuesday').toDate()
-        const weekEnd = date.startOf('day').day('Tuesday').add(6, 'days').toDate()
-        const sales: ISale[] = await Sale.find({date: {$gte: weekStart, $lte: weekEnd}})
+        const sales: Sale[] = await nukebotAPI.getSales(date.format('YYYY-MM-DD'))
         if (sales.length) {
             await message.channel.send(`Sales for the week of ${moment.utc(weekStart).format('l')}-${moment.utc(weekEnd).format('l')}`)
-            return sales.forEach((sale: ISale) => {
+            return sales.forEach((sale: Sale) => {
                 const embed: MessageEmbed = createEmbed(sale)
 
                 message.channel.send(embed)
@@ -117,7 +117,7 @@ async function deleteSale(args: string[], message: Message) {
     }
 
     try {
-        const sale: ISale = await Sale.findById(args[0])
+        const sale: Sale = await nukebotAPI.getSaleById(args[0])
 
         if (sale) {
             const embed: MessageEmbed = createEmbed(sale)
@@ -130,7 +130,7 @@ async function deleteSale(args: string[], message: Message) {
             collector.on('collect', async (m: Message) => {
                 if (m.content === 'yes') {
                     try {
-                        await sale.deleteOne()
+                        await nukebotAPI.deleteSale(sale)
                         await collector.stop()
                         return await m.channel.send(`Sale has been deleted`)
                     } catch (e) {
@@ -147,7 +147,7 @@ async function deleteSale(args: string[], message: Message) {
 
 }
 
-function createEmbed(sale: ISale) {
+function createEmbed(sale: Sale) {
     return new MessageEmbed()
         .setColor(3447003)
         .setAuthor(`${sale.buyerName} | ${sale.buyerBattleTag} | ${moment.utc(sale.date).format('l')}`)
