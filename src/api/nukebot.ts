@@ -6,8 +6,8 @@ let apiClient: AxiosInstance
 async function getAuthToken(): Promise<string> {
     try {
         const {data} = await axios.post(`${process.env.NUKEBOT_API_URL}/users/login`, {
-            username: 'Nagron',
-            password: 'test1234'
+            username: process.env.NUKEBOT_API_USER,
+            password: process.env.NUKEBOT_API_PASSWORD
         })
 
         return `Bearer ${data.access_token}`
@@ -78,6 +78,7 @@ export async function deleteSale(sale: Sale): Promise<boolean> {
         return false
     }
 }
+
 export default {
     getSales,
     getSaleById,
