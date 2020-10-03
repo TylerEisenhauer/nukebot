@@ -33,6 +33,6 @@ export async function enter(args: string[], message: Message) {
         })
         return await message.channel.send(`<@${message.member.id}> your entry has been received.`)
     } catch (e) {
-        return await message.channel.send(`Error writing to db:\n${e}`)
+        return await message.channel.send(`Error entering raffle:\n${e}`)
     }
 }

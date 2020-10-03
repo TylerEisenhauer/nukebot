@@ -33,6 +33,6 @@ export async function startraffle(args: string[], message: Message) {
 
         await message.mentions.channels.first().send(`New Raffle!\n\n${raffle.message}`)
     } catch (e) {
-        return await message.channel.send(`Error writing to db:\n${e}`)
+        return await message.channel.send(`Error creating raffle:\n${e}`)
     }
 }

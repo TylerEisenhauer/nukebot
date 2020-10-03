@@ -142,7 +142,7 @@ async function deleteSale(args: string[], message: Message) {
         }
         return await message.channel.send('Could not find sale')
     } catch (e) {
-        return await message.channel.send(`Error Retrieving Sale:\n${e}`)
+        return await message.channel.send(`Error Deleting Sale:\n${e}`)
     }
 
 }
