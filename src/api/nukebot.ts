@@ -1,5 +1,7 @@
 import axios, {AxiosInstance} from 'axios'
 import {Sale} from '../types/sale'
+import {Raffle} from '../types/raffle'
+import {RaffleEntry} from '../types/raffleentry'
 
 let apiClient: AxiosInstance
 
@@ -79,10 +81,89 @@ export async function deleteSale(sale: Sale): Promise<boolean> {
     }
 }
 
+export async function getCurrentRaffle(): Promise<Raffle> {
+    try {
+        const {data} = await apiClient.get<Raffle>('/raffle')
+        return data
+    } catch (e) {
+        if (e.response.status === 404) return null
+        throw e
+    }
+}
+
+export async function getRaffleById(id: string): Promise<Raffle> {
+    try {
+        const {data} = await apiClient.get<Raffle>(`/raffle/${id}`)
+        return data
+    } catch (e) {
+        if (e.response.status === 404) return null
+        throw e
+    }
+}
+
+export async function getRaffleEntry(discordId: string, raffleId: string): Promise<RaffleEntry> {
+    try {
+        const {data} = await apiClient.get<RaffleEntry>(`/raffle/entry`, {
+            params: {
+                discordId,
+                raffleId
+            }
+        })
+        return data
+    } catch (e) {
+        if (e.response.status === 404) return null
+        throw e
+    }
+}
+
+export async function pickWinner(id: string): Promise<RaffleEntry> {
+    try {
+        const {data} = await apiClient.get<RaffleEntry>(`/raffle/winner/${id}`)
+        return data
+    } catch (e) {
+        if (e.response.status === 404) return null
+        throw e
+    }
+}
+
+export async function createRaffle(raffle: Raffle): Promise<Raffle> {
+    try {
+        const {data} = await apiClient.post<Raffle>(`/raffle`, raffle)
+        return data
+    } catch (e) {
+        throw e
+    }
+}
+
+export async function enterRaffle(entry: RaffleEntry): Promise<RaffleEntry> {
+    try {
+        const {data} = await apiClient.post<RaffleEntry>(`/raffle/enter`, entry)
+        return data
+    } catch (e) {
+        throw e
+    }
+}
+
+export async function updateRaffle(raffle: Raffle): Promise<Raffle> {
+    try {
+        const {data} = await apiClient.patch<Raffle>(`/raffle/${raffle._id}`, raffle)
+        return data
+    } catch (e) {
+        throw e
+    }
+}
+
 export default {
     getSales,
     getSaleById,
     createSale,
     updateSale,
-    deleteSale
+    deleteSale,
+    getCurrentRaffle,
+    getRaffleById,
+    pickWinner,
+    createRaffle,
+    enterRaffle,
+    updateRaffle,
+    getRaffleEntry
 }

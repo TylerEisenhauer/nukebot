@@ -1,12 +1,13 @@
 import {Message, MessageCollector, Permissions, TextChannel} from 'discord.js'
-import Raffle from '../types/mongoose/raffle'
+import nukebotAPI from '../api/nukebot'
+import moment from 'moment'
 
 export async function endraffle(args: string[], message: Message) {
     if (!message.member.hasPermission(Permissions.FLAGS.ADMINISTRATOR)) {
         return await message.channel.send(`You don't have permission to control raffles`)
     }
 
-    const currentRaffle = await Raffle.findOne({endedAt: null})
+    const currentRaffle = await nukebotAPI.getCurrentRaffle()
 
     if (!currentRaffle) {
         return await message.channel.send('No raffle is currently running')
@@ -18,13 +19,14 @@ export async function endraffle(args: string[], message: Message) {
     collector.on('collect', async (m: Message) => {
         if (m.content === 'yes') {
             try {
-                await currentRaffle.updateOne({
-                    endedAt: new Date()
+                await nukebotAPI.updateRaffle({
+                    ...currentRaffle,
+                    endedAt: moment.utc().toDate()
                 })
                 await collector.stop()
                 return await m.channel.send(`Raffle has been ended`)
             } catch (e) {
-                return await message.channel.send(`Error writing to db:\n${e}`)
+                return await message.channel.send(`Error ending raffle:\n${e}`)
             }
         }
     })

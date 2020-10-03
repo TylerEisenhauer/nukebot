@@ -1,13 +1,14 @@
 import {Message, Permissions} from 'discord.js'
-import Raffle from '../types/mongoose/raffle'
-
+import {Raffle} from '../types/raffle'
+import nukebotAPI from '../api/nukebot'
+import moment from 'moment'
 
 export async function startraffle(args: string[], message: Message) {
     if (!message.member.hasPermission(Permissions.FLAGS.ADMINISTRATOR)) {
         return await message.channel.send(`You don't have permission to control raffles`)
     }
 
-    const currentRaffle = await Raffle.findOne({endedAt: null})
+    const currentRaffle = await nukebotAPI.getCurrentRaffle()
 
     if (currentRaffle) {
         return await message.channel.send('A raffle is already being run, use the command !endraffle to finish it (THIS DOES NOT PICK A WINNER, USE !pickwinner FOR THIS)')
@@ -22,14 +23,15 @@ export async function startraffle(args: string[], message: Message) {
     }
 
     try {
-        await Raffle.create({
-            startedAt: new Date(),
+        const raffle: Raffle = await nukebotAPI.createRaffle({
+            startedAt: moment.utc().toDate(),
             endedAt: null,
             channel: message.mentions.channels.first().id,
             message: args[1],
             winner: null
         })
-        await message.mentions.channels.first().send(`New Raffle!\n\n${args[1]}`)
+
+        await message.mentions.channels.first().send(`New Raffle!\n\n${raffle.message}`)
     } catch (e) {
         return await message.channel.send(`Error writing to db:\n${e}`)
     }

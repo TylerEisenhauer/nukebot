@@ -5,7 +5,6 @@ import {parseArgs} from './helpers/parsing'
 import {initializeAPIClients} from './config/config'
 import {novelkeysCheck} from './page-watchers/novelkeys'
 import {nvidiaCheck} from './page-watchers/nvidia'
-import connect from './connect'
 import {bestbuyCheck} from './page-watchers/bestbuy'
 
 config()
@@ -19,7 +18,6 @@ nvidiaCheck(shrugWebhookClient)
 bestbuyCheck(shrugWebhookClient)
 
 client.on('ready', async () => {
-    connect(process.env.MONGO_CONNECTION)
     await initializeAPIClients()
     await client.user.setPresence({
         status: 'online',
