@@ -39,7 +39,7 @@ stages:
           - task: Docker@2
             inputs:
               containerRegistry: 'Docker Hub'
-              repository: 'nukebot'
+              repository: 'tylereisenhauer/nukebot'
               command: 'buildAndPush'
               Dockerfile: '**/Dockerfile'
   # - stage: DeployProd
