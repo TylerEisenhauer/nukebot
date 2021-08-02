@@ -48,6 +48,8 @@ stages:
               tags: |
                 $(Build.SourceVersion)
                 latest
+              addPipelineData: false
+              addBaseImageData: false
   # - stage: DeployProd
   #   condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
   #   displayName: 'Deploy Production'
