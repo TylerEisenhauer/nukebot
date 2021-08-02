@@ -1,5 +1,7 @@
 trigger:
-- master
+  branches:
+    include:
+      - master
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -42,6 +44,9 @@ stages:
               repository: 'tylereisenhauer/nukebot'
               command: 'buildAndPush'
               Dockerfile: '**/Dockerfile'
+              tags: |
+                $(Build.SourceVersion)
+                latest
   # - stage: DeployProd
   #   condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
   #   displayName: 'Deploy Production'
