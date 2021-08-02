@@ -5,64 +5,70 @@ pool:
   vmImage: 'ubuntu-latest'
 
 stages:
-  - stage: Build
+  - stage: BuildAndPushImage
     jobs:
       - job: Build
         steps:
-          - task: NodeTool@0
+          # - task: NodeTool@0
+          #   inputs:
+          #     versionSpec: '14.x'
+          #   displayName: 'Install Node.js'
+
+          # - task: YarnInstaller@3
+          #   inputs:
+          #     versionSpec: '1.x'
+          #   displayName: 'Install Yarn'
+
+          # - script: |
+          #     yarn install
+          #     tsc
+          #   displayName: 'Yarn install and transpile'
+
+          # - task: ArchiveFiles@2
+          #   inputs:
+          #     rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
+          #     includeRootFolder: false
+          #     archiveType: 'zip'
+          #     archiveFile: '$(Build.ArtifactStagingDirectory)/NukeBot.zip'
+          #     replaceExistingArchive: true
+
+          # - publish: $(Build.ArtifactStagingDirectory)/NukeBot.zip
+          #   artifact: NukeBot
+          #   displayName: 'Publish Artifacts'
+
+          - task: Docker@2
             inputs:
-              versionSpec: '14.x'
-            displayName: 'Install Node.js'
-
-          - task: YarnInstaller@3
-            inputs:
-              versionSpec: '1.x'
-            displayName: 'Install Yarn'
-
-          - script: |
-              yarn install
-              tsc
-            displayName: 'Yarn install and transpile'
-
-          - task: ArchiveFiles@2
-            inputs:
-              rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
-              includeRootFolder: false
-              archiveType: 'zip'
-              archiveFile: '$(Build.ArtifactStagingDirectory)/NukeBot.zip'
-              replaceExistingArchive: true
-
-          - publish: $(Build.ArtifactStagingDirectory)/NukeBot.zip
-            artifact: NukeBot
-            displayName: 'Publish Artifacts'
-
-  - stage: DeployProd
-    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
-    displayName: 'Deploy Production'
-    dependsOn: Build
-    jobs:
-      - job: DeployProduction
-        steps:
-          - download: current
-            artifact: NukeBot
-            displayName: 'Download Artifacts'
+              containerRegistry: 'Docker Hub'
+              repository: 'nukebot'
+              command: 'buildAndPush'
+              Dockerfile: '**/Dockerfile'
+  # - stage: DeployProd
+  #   condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+  #   displayName: 'Deploy Production'
+  #   dependsOn: Build
+  #   jobs:
+  #     - job: DeployProduction
+  #       steps:
+  #         - download: current
+  #           artifact: NukeBot
+  #           displayName: 'Download Artifacts'
                 
-          - task: CopyFilesOverSSH@0
-            inputs:
-              sshEndpoint: 'Nighthawk'
-              sourceFolder: '$(Pipeline.Workspace)/NukeBot'
-              contents: NukeBot.zip
-              targetFolder: '$(TargetFolder)'
-              readyTimeout: '20000'
-            displayName: 'Copy files to server'
+  #         - task: CopyFilesOverSSH@0
+  #           inputs:
+  #             sshEndpoint: 'Nighthawk'
+  #             sourceFolder: '$(Pipeline.Workspace)/NukeBot'
+  #             contents: NukeBot.zip
+  #             targetFolder: '$(TargetFolder)'
+  #             readyTimeout: '20000'
+  #           displayName: 'Copy files to server'
 
-          - task: SSH@0
-            inputs:
-              sshEndpoint: 'Nighthawk'
-              runOptions: 'commands'
-              commands: |
-                sudo 7z x $(TargetFolder)/NukeBot.zip -o$(TargetFolder)/NukeBot/ -aoa
-                sudo rm -rf $(TargetFolder)/NukeBot.zip
-                sudo chown discord $(TargetFolder)/NukeBot/*
-                sudo systemctl restart discord-bot
-            displayName: 'Restart bot service'
+  #         - task: SSH@0
+  #           inputs:
+  #             sshEndpoint: 'Nighthawk'
+  #             runOptions: 'commands'
+  #             commands: |
+  #               sudo 7z x $(TargetFolder)/NukeBot.zip -o$(TargetFolder)/NukeBot/ -aoa
+  #               sudo rm -rf $(TargetFolder)/NukeBot.zip
+  #               sudo chown discord $(TargetFolder)/NukeBot/*
+  #               sudo systemctl restart discord-bot
+  #           displayName: 'Restart bot service'
