@@ -1,7 +1,7 @@
 import {Collection, Message, Permissions, TextChannel} from 'discord.js'
 
 export async function clear(args: string[], message: Message) {
-    if (!message.member.hasPermission(Permissions.FLAGS.MANAGE_MESSAGES)) {
+    if (!message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
         return await message.channel.send(`You're too much of a little bitch for this power.`)
     }
 
