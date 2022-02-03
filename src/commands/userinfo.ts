@@ -2,7 +2,7 @@ import {GuildMember, Message, Permissions} from 'discord.js'
 import moment from 'moment'
 
 export async function userinfo(args: string[], message: Message) {
-    if (!message.member.hasPermission(Permissions.FLAGS.ADMINISTRATOR)) {
+    if (!message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
         return await message.channel.send(`I'm sorry ${message.member.displayName}, I'm afraid I can't let you do that`)
     }
     if (!args.length) {

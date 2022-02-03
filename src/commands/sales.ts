@@ -21,7 +21,7 @@ export async function sales(args: string[], message: Message) {
 }
 
 async function addSale(args: string[], message: Message) {
-    if (!message.member.hasPermission(Permissions.FLAGS.ADMINISTRATOR)) {
+    if (!message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
         return await message.channel.send(`You don't have permission to control sales`)
     }
 
@@ -70,7 +70,10 @@ async function addSale(args: string[], message: Message) {
 
     try {
         const embed = createEmbed(await nukebotAPI.createSale(sale))
-        await message.channel.send(`Sale created`, embed)
+        await message.channel.send({ 
+            content: `Sale Created`,
+            embeds: [embed]
+        })
     } catch (e) {
         return await message.channel.send(`Error Creating Sale:\n${e}`)
     }
@@ -79,7 +82,10 @@ async function addSale(args: string[], message: Message) {
 async function askQuestion<T>(question: string, message: Message): Promise<string> {
     await message.channel.send(question)
 
-    const response = await message.channel.awaitMessages((m) => m.author.id === message.author.id, {max: 1})
+    const response = await message.channel.awaitMessages({
+        filter: (m: Message) => m.author.id === message.author.id,
+        max: 1
+    })
 
     return response.first().content
 }
@@ -98,7 +104,7 @@ async function listSales(args: string[], message: Message) {
             return sales.forEach((sale: Sale) => {
                 const embed: MessageEmbed = createEmbed(sale)
 
-                message.channel.send(embed)
+                message.channel.send({ embeds: [embed]})
             })
         }
         await message.channel.send('No sales found for this week')
@@ -108,7 +114,7 @@ async function listSales(args: string[], message: Message) {
 }
 
 async function deleteSale(args: string[], message: Message) {
-    if (!message.member.hasPermission(Permissions.FLAGS.ADMINISTRATOR)) {
+    if (!message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
         return await message.channel.send(`You don't have permission to control sales`)
     }
 
@@ -122,9 +128,13 @@ async function deleteSale(args: string[], message: Message) {
         if (sale) {
             const embed: MessageEmbed = createEmbed(sale)
 
-            await message.channel.send(`Are you sure you want to delete the following sale? Reply 'yes' within 30 seconds to delete.`, embed)
+            await message.channel.send({
+                content: `Are you sure you want to delete the following sale? Reply 'yes' within 30 seconds to delete.`,
+                embeds: [embed]
+            })
 
-            const collector: MessageCollector = new MessageCollector(<TextChannel>message.channel, (m) => m.author.id === message.author.id, {
+            const collector: MessageCollector = new MessageCollector(<TextChannel>message.channel, {
+                filter: (m: Message) => m.author.id === message.author.id,
                 time: 1000 * 30
             })
             collector.on('collect', async (m: Message) => {
@@ -132,9 +142,9 @@ async function deleteSale(args: string[], message: Message) {
                     try {
                         await nukebotAPI.deleteSale(sale)
                         await collector.stop()
-                        return await m.channel.send(`Sale has been deleted`)
+                        await m.channel.send(`Sale has been deleted`)
                     } catch (e) {
-                        return await message.channel.send(`Error deleting sale:\n${e}`)
+                        await message.channel.send(`Error deleting sale:\n${e}`)
                     }
                 }
             })
@@ -150,11 +160,13 @@ async function deleteSale(args: string[], message: Message) {
 function createEmbed(sale: Sale) {
     return new MessageEmbed()
         .setColor(3447003)
-        .setAuthor(`${sale.buyerName} | ${sale.buyerBattleTag} | ${moment.utc(sale.date).format('l')}`)
+        .setAuthor({
+            name: `${sale.buyerName} | ${sale.buyerBattleTag} | ${moment.utc(sale.date).format('l')}`
+        })
         .setDescription(`**${sale.service}**`)
         .addField('Price', sale.price.toLocaleString(), true)
         .addField('Amount Collected', sale.amountCollected.toLocaleString(), true)
         .addField('Amount Owed', (sale.price - sale.amountCollected).toLocaleString(), true)
-        .setFooter(`Reference | ${sale._id}`)
+        .setFooter({ text: `Reference | ${sale._id}` })
         .setThumbnail('https://i.imgur.com/4AiXzf8.jpg')
 }

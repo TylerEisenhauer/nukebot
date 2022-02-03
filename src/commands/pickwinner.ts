@@ -3,7 +3,7 @@ import {RaffleEntry} from '../types/raffleentry'
 import nukebotAPI from '../api/nukebot'
 
 export async function pickwinner(args: string[], message: Message) {
-    if (!message.member.hasPermission(Permissions.FLAGS.ADMINISTRATOR)) {
+    if (!message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
         return await message.channel.send(`You don't have permission to control raffles`)
     }
 

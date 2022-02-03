@@ -4,7 +4,7 @@ import nukebotAPI from '../api/nukebot'
 import moment from 'moment'
 
 export async function startraffle(args: string[], message: Message) {
-    if (!message.member.hasPermission(Permissions.FLAGS.ADMINISTRATOR)) {
+    if (!message.member.permissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
         return await message.channel.send(`You don't have permission to control raffles`)
     }
 

@@ -1,4 +1,4 @@
-import {Message} from 'discord.js'
+import {Message, MessageEmbed} from 'discord.js'
 import {Character, Encounters, Expansions, Item, Instance, Mode} from '../types/character.Types'
 import {find} from 'lodash'
 import {utc} from 'moment'
@@ -17,30 +17,29 @@ export async function lookup(args: string[], message: Message) {
 
     const raiderIOData: RaiderIOCharacterData = await getCharacterData(['mythic_plus_best_runs', 'mythic_plus_scores_by_season:current'], args[0], args[1])
 
+    const embed: MessageEmbed = new MessageEmbed()
+        .setColor(3447003)
+        .setAuthor({
+            name: `${character.name} - ${character.realm.name.en_US} | ${character.covenant_progress.chosen_covenant.name.en_US} ${character.active_spec.name.en_US} ${character.character_class.name.en_US} | ${character.equipped_item_level} ilvl | Renown Level ${character.covenant_progress.renown_level}`,
+            url: `https://worldofwarcraft.com/en-us/character/${args[0]}/${args[1]}`
+        })
+        .setThumbnail(character.media.avatar_url)
+        .setDescription('Character data and stuff')
+        .addFields(
+            {
+                name: 'Raid Progress',
+                value: buildRecentRaidList(character.encounters),
+                inline: true
+            },
+            {
+                name: 'Mythic Plus',
+                value: buildMythicPlusDungeonList(raiderIOData),
+                inline: true
+            }
+        )
+
     return await message.channel.send({
-        embed: {
-            author: {
-                name: `${character.name} - ${character.realm.name.en_US} | ${character.covenant_progress.chosen_covenant.name.en_US} ${character.active_spec.name.en_US} ${character.character_class.name.en_US} | ${character.equipped_item_level} ilvl | Renown Level ${character.covenant_progress.renown_level}`,
-                url: `https://worldofwarcraft.com/en-us/character/${args[0]}/${args[1]}`
-            },
-            thumbnail: {
-                url: character.media.avatar_url
-            },
-            color: 3447003,
-            description: 'Character data and stuff',
-            fields: [
-                {
-                    name: 'Raid Progress',
-                    value: buildRecentRaidList(character.encounters),
-                    inline: true
-                },
-                {
-                    name: 'Mythic Plus',
-                    value: buildMythicPlusDungeonList(raiderIOData),
-                    inline: true
-                }
-            ]
-        }
+        embeds: [embed]
     })
 }
 
