@@ -160,7 +160,9 @@ async function deleteSale(args: string[], message: Message) {
 function createEmbed(sale: Sale) {
     return new MessageEmbed()
         .setColor(3447003)
-        .setAuthor(`${sale.buyerName} | ${sale.buyerBattleTag} | ${moment.utc(sale.date).format('l')}`)
+        .setAuthor({
+            name: `${sale.buyerName} | ${sale.buyerBattleTag} | ${moment.utc(sale.date).format('l')}`
+        })
         .setDescription(`**${sale.service}**`)
         .addField('Price', sale.price.toLocaleString(), true)
         .addField('Amount Collected', sale.amountCollected.toLocaleString(), true)
