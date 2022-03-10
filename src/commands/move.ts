@@ -9,8 +9,6 @@ export async function move(args: string[], message: Message) {
         return await message.channel.send('Mention exactly TWO channels retard.')
     }
 
-    await message.guild.channels.fetch()
-
     const fromChannel: VoiceChannel = message.guild.channels.cache.find((x) => {
         return x.type === 'GUILD_VOICE' && x.name === args[0]
     }) as VoiceChannel
