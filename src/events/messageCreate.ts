@@ -1,19 +1,20 @@
 import { Message } from 'discord.js'
 
-import { commandHandler } from '../handlers/command'
 import { parseArgs } from '../helpers/parsing'
+import { ExtendedClient } from '../types/extendedClient'
 
 const prefix = '!'
 
 export async function messageCreate(message: Message) {
     if (message.author.bot) return
-    let performGamaAlert: boolean = process.env.PERFORM_GAMA_ALERT === 'true'
+    const client: ExtendedClient = message.client
+    const performGamaAlert: boolean = process.env.PERFORM_GAMA_ALERT === 'true'
 
     if (performGamaAlert && message.author.id === process.env.GAMA_ID && message.channel.id === process.env.ALERT_CHANNEL_ID) {
-        await commandHandler('gamapost', null, message)
+        await await client.commands.get('gamapost').execute([], message)
     }
     if (message.author.id === process.env.PWN_ID && message.channel.id === process.env.ALERT_CHANNEL_ID) {
-        await commandHandler('pwnpost', null, message)
+        await await client.commands.get('pwnpost').execute([], message)
     }
 
     if (!message.content.startsWith(prefix)) return
@@ -22,6 +23,5 @@ export async function messageCreate(message: Message) {
     const command: string = args.shift().toLowerCase()
 
     if (command.startsWith(prefix)) return
-
-    await commandHandler(command, args, message)
+    await client.commands.get(command)?.execute(args, message)
 }
