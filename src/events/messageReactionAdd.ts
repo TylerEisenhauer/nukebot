@@ -1,5 +1,5 @@
-import { MessageReaction, User } from "discord.js"
-import NodeCache from "node-cache"
+import { MessageReaction, User } from 'discord.js'
+import NodeCache from 'node-cache'
 
 const cache = new NodeCache()
 

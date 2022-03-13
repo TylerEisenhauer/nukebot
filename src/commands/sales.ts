@@ -1,14 +1,93 @@
-import {Message, Permissions, MessageEmbed, MessageCollector, TextChannel} from 'discord.js'
-import {Sale} from '../types/sale'
+import { SlashCommandBuilder } from '@discordjs/builders'
+import { Message, Permissions, MessageEmbed, MessageCollector, TextChannel, CommandInteraction, MessageActionRow, MessageButton, MessageComponentInteraction } from 'discord.js'
+import { isFinite } from 'lodash'
 import moment from 'moment'
-import mongoose from "mongoose"
-import {isFinite} from 'lodash'
+import mongoose from 'mongoose'
+
+import { Sale } from '../types/sale'
 import nukebotAPI from '../api/nukebot'
+import { Command } from '../types/command'
 
-export async function sales(args: string[], message: Message) {
-    const command: string = args.length ? args.shift().toLowerCase() : 'list'
+const slashCommand = new SlashCommandBuilder()
+    .setName('sales')
+    .setDescription('Sales commands')
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName('add')
+            .setDescription('Add a sale')
+            .addStringOption(option =>
+                option
+                    .setName('buyername')
+                    .setDescription('The name of the buyer')
+                    .setRequired(true))
+            .addStringOption(option =>
+                option
+                    .setName('buyerbattletag')
+                    .setDescription('The battletag of the buyer')
+                    .setRequired(true))
+            .addStringOption(option =>
+                option
+                    .setName('service')
+                    .setDescription('What they are buying')
+                    .setRequired(true))
+            .addStringOption(option =>
+                option
+                    .setName('date')
+                    .setDescription('What day is the sale (YYYY-MM-DD format)')
+                    .setRequired(true))
+            .addIntegerOption(option =>
+                option
+                    .setName('price')
+                    .setDescription('How much is the sale')
+                    .setMinValue(1)
+                    .setMaxValue(9999999)
+                    .setRequired(true))
+            .addIntegerOption(option =>
+                option
+                    .setName('deposit')
+                    .setDescription('Amount collected as a deposit')
+                    .setMinValue(0)
+                    .setMaxValue(9999999)
+                    .setRequired(true))
+    )
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName('list')
+            .setDescription('List sales for a given week')
+            .addStringOption(option =>
+                option
+                    .setName('date')
+                    .setDescription('What day would you like to list (YYYY-MM-DD format)')
+                    .setRequired(false))
+    )
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName('delete')
+            .setDescription('Delete a sale')
+            .addStringOption(option =>
+                option
+                    .setName('reference')
+                    .setDescription('Reference Id of the sale to delete (get this from the list command)')
+                    .setRequired(true))
+    )
 
-    switch (command) {
+async function executeInteraction(interaction: CommandInteraction) {
+    switch (interaction.options.getSubcommand()) {
+        case 'add':
+            return await addSaleInteraction(interaction)
+        case 'list':
+            return await listSalesInteraction(interaction)
+        case 'delete':
+            return await deleteSaleInteraction(interaction)
+        default:
+            return await interaction.reply('Invalid subcommand for sales')
+    }
+}
+
+async function execute(args: string[], message: Message) {
+    const subcommand: string = args.length ? args.shift().toLowerCase() : 'list'
+
+    switch (subcommand) {
         case 'add':
             return await addSale(args, message)
         case 'list':
@@ -17,6 +96,37 @@ export async function sales(args: string[], message: Message) {
             return await deleteSale(args, message)
         default:
             return await message.channel.send('Invalid command')
+    }
+}
+
+async function addSaleInteraction(interaction: CommandInteraction) {
+    if (!interaction.memberPermissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
+        return await interaction.reply(`You don't have permission to control sales`)
+    }
+
+    let sale: Sale = {
+        buyerName: interaction.options.getString('buyername'),
+        buyerBattleTag: interaction.options.getString('buyerbattletag'),
+        service: interaction.options.getString('service'),
+        price: interaction.options.getInteger('price'),
+        amountCollected: interaction.options.getInteger('deposit')
+    }
+
+    const date = moment.utc(interaction.options.getString('date'))
+    if (date.isValid()) {
+        sale.date = date.toDate()
+    } else {
+        return await interaction.reply('Invalid date')
+    }
+
+    try {
+        const embed = createEmbed(await nukebotAPI.createSale(sale))
+        await interaction.reply({
+            content: `Sale Created`,
+            embeds: [embed]
+        })
+    } catch (e) {
+        return await interaction.reply(`Error Creating Sale:\n${e}`)
     }
 }
 
@@ -52,7 +162,7 @@ async function addSale(args: string[], message: Message) {
         const price = parseInt(await askQuestion('How much is the sale? (numbers only)', message))
         if (isFinite(price)) {
             sale.price = price
-            break; //because if 0 is entered thats a falsy value
+            break //because if 0 is entered thats a falsy value
         } else {
             await message.channel.send('Invalid Price')
         }
@@ -62,7 +172,7 @@ async function addSale(args: string[], message: Message) {
         const price = parseInt(await askQuestion('How much have you collected as a deposit? (numbers only, enter 0 for none)', message))
         if (isFinite(price)) {
             sale.amountCollected = price
-            break; //because if 0 is entered thats a falsy value
+            break //because if 0 is entered thats a falsy value
         } else {
             await message.channel.send('Invalid Price')
         }
@@ -70,7 +180,7 @@ async function addSale(args: string[], message: Message) {
 
     try {
         const embed = createEmbed(await nukebotAPI.createSale(sale))
-        await message.channel.send({ 
+        await message.channel.send({
             content: `Sale Created`,
             embeds: [embed]
         })
@@ -90,6 +200,31 @@ async function askQuestion<T>(question: string, message: Message): Promise<strin
     return response.first().content
 }
 
+async function listSalesInteraction(interaction: CommandInteraction) {
+    try {
+        //TODO: if this falls on monday it does not work correctly
+        const inputDate = interaction.options.getString('date')
+        const date: moment.Moment = inputDate ? moment.utc(inputDate) : moment.utc()
+        if (!date.isValid()) return await interaction.reply('Invalid Date')
+
+        const weekStart = moment(date).startOf('day').day('Tuesday').toDate()
+        const weekEnd = moment(weekStart).add(6, 'days').toDate()
+
+        const sales: Sale[] = await nukebotAPI.getSales(date.format('YYYY-MM-DD'))
+        if (sales.length) {
+            await interaction.reply(`Sales for the week of ${moment.utc(weekStart).format('l')}-${moment.utc(weekEnd).format('l')}`)
+            return sales.forEach((sale: Sale) => {
+                const embed: MessageEmbed = createEmbed(sale)
+
+                interaction.channel.send({ embeds: [embed] })
+            })
+        }
+        await interaction.reply('No sales found for this week')
+    } catch (e) {
+        return await interaction.reply(`Error Retrieving Sales:\n${e}`)
+    }
+}
+
 async function listSales(args: string[], message: Message) {
     try {
         //TODO: if this falls on monday it does not work correctly
@@ -104,12 +239,81 @@ async function listSales(args: string[], message: Message) {
             return sales.forEach((sale: Sale) => {
                 const embed: MessageEmbed = createEmbed(sale)
 
-                message.channel.send({ embeds: [embed]})
+                message.channel.send({ embeds: [embed] })
             })
         }
         await message.channel.send('No sales found for this week')
     } catch (e) {
         return await message.channel.send(`Error Retrieving Sales:\n${e}`)
+    }
+}
+
+async function deleteSaleInteraction(interaction: CommandInteraction) {
+    if (!interaction.memberPermissions.has(Permissions.FLAGS.ADMINISTRATOR)) {
+        return await interaction.reply(`You don't have permission to control sales`)
+    }
+
+    const referenceId = interaction.options.getString('reference')
+
+    if (!mongoose.Types.ObjectId.isValid(referenceId)) {
+        return await interaction.reply('Invalid sale reference')
+    }
+
+    try {
+        const sale: Sale = await nukebotAPI.getSaleById(referenceId)
+
+        if (sale) {
+            const embed: MessageEmbed = createEmbed(sale)
+
+            const row = new MessageActionRow()
+                .addComponents(
+                    new MessageButton()
+                        .setCustomId('no')
+                        .setLabel('No')
+                        .setStyle('PRIMARY'),
+                    new MessageButton()
+                        .setCustomId('yes')
+                        .setLabel('Yes')
+                        .setStyle('DANGER')
+                )
+
+            const collector = interaction.channel.createMessageComponentCollector({
+                filter: i => i.user.id === interaction.user.id,
+                time: 30 * 1000,
+                max: 1
+            })
+
+            await interaction.reply({
+                content: `Are you sure you want to delete the following sale? Reply 'yes' within 30 seconds to delete.`,
+                embeds: [embed],
+                components: [row]
+            })
+
+            collector.on('collect', async (i: MessageComponentInteraction) => {
+                if (i.customId === 'yes') {
+                    try {
+                        await nukebotAPI.deleteSale(sale)
+                        await i.update({
+                            content: `Sale has been deleted`,
+                            embeds: [embed],
+                            components: []
+                        })
+                    } catch (e) {
+                        await interaction.reply(`Error deleting sale:\n${e}`)
+                    }
+                } else {
+                    await i.update({
+                        content: `Sale deletion has been cancelled`,
+                        embeds: [embed],
+                        components: []
+                    })
+                }
+            })
+            return
+        }
+        return await interaction.reply('Could not find sale')
+    } catch (e) {
+        return await interaction.reply(`Error Deleting Sale:\n${e}`)
     }
 }
 
@@ -154,7 +358,6 @@ async function deleteSale(args: string[], message: Message) {
     } catch (e) {
         return await message.channel.send(`Error Deleting Sale:\n${e}`)
     }
-
 }
 
 function createEmbed(sale: Sale) {
@@ -170,3 +373,10 @@ function createEmbed(sale: Sale) {
         .setFooter({ text: `Reference | ${sale._id}` })
         .setThumbnail('https://i.imgur.com/4AiXzf8.jpg')
 }
+
+module.exports = {
+    name: 'sales',
+    execute,
+    executeInteraction,
+    slashCommand
+} as Command

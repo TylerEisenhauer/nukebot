@@ -1,12 +1,50 @@
-import {Message, MessageEmbed} from 'discord.js'
-import {Character, Encounters, Expansions, Item, Instance, Mode} from '../types/character.Types'
-import {find} from 'lodash'
-import {utc} from 'moment'
-import {DungeonRun, RaiderIOCharacterData} from '../types/raiderio.Types'
-import {getCharacter, getCharacterEquipment, getCharacterMedia, getCharacterRaidProgress} from '../api/blizzard'
-import {getCharacterData} from '../api/raiderio'
+import { SlashCommandBuilder } from '@discordjs/builders'
+import { CommandInteraction, Message, MessageEmbed } from 'discord.js'
+import { find } from 'lodash'
+import { utc } from 'moment'
 
-export async function lookup(args: string[], message: Message) {
+import { DungeonRun, RaiderIOCharacterData } from '../types/raiderio.Types'
+import { getCharacter, getCharacterEquipment, getCharacterMedia, getCharacterRaidProgress } from '../api/blizzard'
+import { getCharacterData } from '../api/raiderio'
+import { Command } from '../types/command'
+import { Character, Encounters, Expansions, Instance, Mode } from '../types/character.Types'
+
+const slashCommand = new SlashCommandBuilder()
+    .setName('lookup')
+    .setDescription('Lookup a world of warcraft character')
+    .addStringOption(option =>
+        option
+            .setName('realm')
+            .setDescription('Realm the character is on')
+            .setRequired(true))
+    .addStringOption(option =>
+        option
+            .setName('name')
+            .setDescription('Name of the character')
+            .setRequired(true))
+
+async function executeInteraction(interaction: CommandInteraction) {
+    const realm: string = interaction.options.getString('realm')
+    const name: string = interaction.options.getString('name')
+
+    const character: Character = await getCharacter(realm, name)
+    if (!character) {
+        return await interaction.reply('Character not found')
+    }
+    character.encounters = await getCharacterRaidProgress(realm, name)
+    character.equipment = await getCharacterEquipment(realm, name)
+    character.media = await getCharacterMedia(realm, name)
+
+    const raiderIOData: RaiderIOCharacterData = await getCharacterData(['mythic_plus_best_runs', 'mythic_plus_scores_by_season:current'], realm, name)
+
+    const embed = buildEmbed(character, raiderIOData)
+
+    return await interaction.reply({
+        embeds: [embed]
+    })
+}
+
+async function execute(args: string[], message: Message) {
     const character: Character = await getCharacter(args[0], args[1])
     if (!character) {
         return await message.channel.send('Character not found')
@@ -17,11 +55,19 @@ export async function lookup(args: string[], message: Message) {
 
     const raiderIOData: RaiderIOCharacterData = await getCharacterData(['mythic_plus_best_runs', 'mythic_plus_scores_by_season:current'], args[0], args[1])
 
+    const embed = buildEmbed(character, raiderIOData)
+
+    return await message.channel.send({
+        embeds: [embed]
+    })
+}
+
+function buildEmbed(character: Character, raiderIOData: RaiderIOCharacterData): MessageEmbed {
     const embed: MessageEmbed = new MessageEmbed()
         .setColor(3447003)
         .setAuthor({
             name: `${character.name} - ${character.realm.name.en_US} | ${character.covenant_progress.chosen_covenant.name.en_US} ${character.active_spec.name.en_US} ${character.character_class.name.en_US} | ${character.equipped_item_level} ilvl | Renown Level ${character.covenant_progress.renown_level}`,
-            url: `https://worldofwarcraft.com/en-us/character/${args[0]}/${args[1]}`
+            url: `https://worldofwarcraft.com/en-us/character/${character.realm}/${character.name}`
         })
         .setThumbnail(character.media.avatar_url)
         .setDescription('Character data and stuff')
@@ -38,9 +84,7 @@ export async function lookup(args: string[], message: Message) {
             }
         )
 
-    return await message.channel.send({
-        embeds: [embed]
-    })
+    return embed
 }
 
 function buildRecentRaidList(raids: Encounters[]): string {
@@ -78,3 +122,10 @@ function buildMythicPlusDungeonList(raiderIOData: RaiderIOCharacterData): string
 
     return dataString
 }
+
+module.exports = {
+    name: 'lookup',
+    execute,
+    executeInteraction,
+    slashCommand
+} as Command
