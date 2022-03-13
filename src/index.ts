@@ -1,94 +1,53 @@
-import {Client, Message, MessageReaction, Permissions, User, Intents} from 'discord.js'
-import {commandHandler} from './handlers/command'
-import {config} from 'dotenv-flow'
-import {parseArgs} from './helpers/parsing'
-import {initializeAPIClients} from './config/config'
+import { Client, Intents } from 'discord.js'
+import { REST } from '@discordjs/rest'
+import { Routes } from 'discord-api-types/v9'
+import { config } from 'dotenv-flow'
+import fs from 'node:fs'
+import path from 'node:path'
+
+import { interactionCreate } from './events/interactionCreate'
+import { messageCreate } from './events/messageCreate'
+import { messageReactionAdd } from './events/messageReactionAdd'
+import { ready } from './events/ready'
 
 config()
 const client = new Client({
     intents: [
-        Intents.FLAGS.GUILDS, 
-        Intents.FLAGS.GUILD_MESSAGES, 
-        Intents.FLAGS.GUILD_MESSAGE_REACTIONS, 
-        Intents.FLAGS.DIRECT_MESSAGES, 
+        Intents.FLAGS.GUILDS,
+        Intents.FLAGS.GUILD_MESSAGES,
+        Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+        Intents.FLAGS.DIRECT_MESSAGES,
         Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
         Intents.FLAGS.GUILD_VOICE_STATES
     ]
 })
-const prefix = '!'
-let cache: string[] = []
 
-client.on('ready', async () => {
-    await initializeAPIClients()
-    await client.user.setPresence({
-        status: 'online',
-        activities: [
-            {
-                name: 'Kicking Doors and Slapping Whores',
-                type: 'PLAYING'
-            }
-        ]
-    })
-    console.log('Bot Online')
-})
+const commands = []
+const commandDirectory = path.join(__dirname, 'commands')
+const commandFiles = fs.readdirSync(commandDirectory).filter(file => file.endsWith('.js'))
 
-client.on('messageCreate', async (message: Message) => {
-    if (message.author.bot) return
-    let performGamaAlert: boolean = process.env.PERFORM_GAMA_ALERT === 'true'
+for (const file of commandFiles) {
+	const command = require(path.join(commandDirectory, file))
+    if (command.slashCommand) commands.push(command.slashCommand.toJSON())
+}
 
-    if (performGamaAlert && message.author.id === process.env.GAMA_ID && message.channel.id === process.env.ALERT_CHANNEL_ID) {
-        await commandHandler('gamapost', null, message)
-    }
-    if (message.author.id === process.env.PWN_ID && message.channel.id === process.env.ALERT_CHANNEL_ID) {
-        await commandHandler('pwnpost', null, message)
-    }
-
-    if (!message.content.startsWith(prefix)) return
-
-    const args: string[] = parseArgs(prefix, message.content)
-    const command: string = args.shift().toLowerCase()
-
-    if (command.startsWith(prefix)) return
-
-    await commandHandler(command, args, message)
-})
-
-client.on('messageReactionAdd', async (reaction: MessageReaction, user: User) => {
-    if (reaction.emoji.id !== process.env.WTF_ID || cache.includes(reaction.message.id)) return
-
-    if (reaction.partial) {
-        try {
-            await reaction.fetch()
-        } catch (e) {
-            console.error('Error fetching reaction')
-            return
-        }
-    }
-
-    const originalNickname: string = reaction.message.member.nickname || reaction.message.member.user.username
-
-    if (reaction.count === 5) {
-        cache.push(reaction.message.id)
-        try {
-            if (!reaction.message.member.manageable) {
-                await reaction.message.channel.send(`${originalNickname} has been voted an idiot, unfortunately I can't change their name`)
-                return
-            }
-
-            await reaction.message.member.setNickname('KPS Student')
-            await reaction.message.channel.send(`${originalNickname} has been voted an idiot, their name has been changed as such`)
-        } catch (e) {
-            console.error(e)
-        } finally {
-            setTimeout(async () => {
-                await reaction.message.member.setNickname(originalNickname)
-            }, 60 * 5 * 1000) //5 Minutes
-        }
-    }
-})
+client.on('ready', ready)
+client.on('messageCreate', messageCreate)
+client.on('messageReactionAdd', messageReactionAdd)
+client.on('interactionCreate', interactionCreate);
 
 client.login(process.env.DISCORD_TOKEN).then(() => {
     console.log('Login Success')
+
+    const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN)
+    rest.put(Routes.applicationCommands(client.user.id), { body: commands })
+        .then(() => console.log('Successfully registered global application commands.'))
+        .catch(console.error)
+
+    // const guildId = process.env.DEV_GUILD_ID
+    // rest.put(Routes.applicationGuildCommands(client.user.id, guildId), { body: commands })
+    //     .then(() => console.log('Successfully registered application commands.'))
+    //     .catch(console.error)
 }).catch((e) => {
     console.log(e)
 })
