@@ -8,8 +8,7 @@
   "scripts": {
     "build": "yarn clean && tsc && webpack",
     "clean": "rm -rf build",
-    "start": "tsc && NODE_ENV=development node src/index.js",
-    "start-prod": "yarn build && node build/index.js"
+    "start": "tsc && node src/index.js"
   },
   "dependencies": {
     "@discordjs/builders": "^0.12.0",

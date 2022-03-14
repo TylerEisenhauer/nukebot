@@ -13,4 +13,8 @@ RUN apk add --no-cache --virtual .gyp \
 
 COPY . /app
 
+ARG NODE_ENV="production"
+
+ENV NODE_ENV ${NODE_ENV}
+
 CMD ["yarn", "start"]

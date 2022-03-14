@@ -33,7 +33,7 @@ const commandFiles = fs.readdirSync(commandDirectory).filter(file => file.endsWi
 for (const file of commandFiles) {
     const command: Command = require(path.join(commandDirectory, file))
     if (command.slashCommand) commands.push(command.slashCommand.toJSON())
-    
+
     client.commands.set(command.name, command)
 }
 
@@ -46,14 +46,16 @@ client.login(process.env.DISCORD_TOKEN).then(() => {
     console.log('Login Success')
 
     const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN)
-    rest.put(Routes.applicationCommands(client.user.id), { body: commands })
-        .then(() => console.log('Successfully registered global application commands.'))
-        .catch(console.error)
-
-    // const guildId = process.env.DEV_GUILD_ID
-    // rest.put(Routes.applicationGuildCommands(client.user.id, guildId), { body: commands })
-    //     .then(() => console.log('Successfully registered application commands.'))
-    //     .catch(console.error)
+    if (process.env.NODE_ENV === 'production') {
+        rest.put(Routes.applicationCommands(client.user.id), { body: commands })
+            .then(() => console.log('Successfully registered global application commands.'))
+            .catch(console.error)
+    } else {
+        const guildId = process.env.DEV_GUILD_ID
+        rest.put(Routes.applicationGuildCommands(client.user.id, guildId), { body: commands })
+            .then(() => console.log('Successfully registered application commands.'))
+            .catch(console.error)
+    }
 }).catch((e) => {
     console.log(e)
 })
