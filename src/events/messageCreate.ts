@@ -11,10 +11,10 @@ export async function messageCreate(message: Message) {
     const performGamaAlert: boolean = process.env.PERFORM_GAMA_ALERT === 'true'
 
     if (performGamaAlert && message.author.id === process.env.GAMA_ID && message.channel.id === process.env.ALERT_CHANNEL_ID) {
-        await await client.commands.get('gamapost').execute([], message)
+        await client.commands.get('gamapost').execute([], message)
     }
     if (message.author.id === process.env.PWN_ID && message.channel.id === process.env.ALERT_CHANNEL_ID) {
-        await await client.commands.get('pwnpost').execute([], message)
+        await client.commands.get('pwnpost').execute([], message)
     }
 
     if (!message.content.startsWith(prefix)) return
