@@ -2,6 +2,7 @@ import { Message } from 'discord.js'
 
 import { parseArgs } from '../helpers/parsing'
 import { ExtendedClient } from '../types/extendedClient'
+import Sentiment from 'sentiment'
 
 const prefix = '!'
 
@@ -9,6 +10,7 @@ export async function messageCreate(message: Message) {
     if (message.author.bot) return
     const client: ExtendedClient = message.client
     const performGamaAlert: boolean = process.env.PERFORM_GAMA_ALERT === 'true'
+    const sentiment = new Sentiment()
 
     if (performGamaAlert && message.author.id === process.env.GAMA_ID && message.channel.id === process.env.ALERT_CHANNEL_ID) {
         await client.commands.get('gamapost').execute([], message)
@@ -17,7 +19,8 @@ export async function messageCreate(message: Message) {
         await client.commands.get('pwnpost').execute([], message)
     }
     if (message.channelId === process.env.HEALER_CHANNEL_ID) {
-      await message.react('❤️')
+      const result = sentiment.analyze(message.content)
+      if (result.comparative < 0) await message.react('❤️')
     }
 
     if (!message.content.startsWith(prefix)) return
