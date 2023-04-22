@@ -19,8 +19,12 @@ export async function messageCreate(message: Message) {
         await client.commands.get('pwnpost').execute([], message)
     }
     if (message.channelId === process.env.HEALER_CHANNEL_ID) {
-      const result = sentiment.analyze(message.content)
-      if (result.comparative < 0) await message.react('❤️')
+      const result = sentiment.analyze(message.content,{
+        extras: {
+          'pog': 3
+        }
+      })
+      if (result.comparative < .3) await message.react('❤️')
     }
 
     if (!message.content.startsWith(prefix)) return
