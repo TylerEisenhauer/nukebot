@@ -16,6 +16,9 @@ export async function messageCreate(message: Message) {
     if (message.author.id === process.env.PWN_ID && message.channel.id === process.env.ALERT_CHANNEL_ID) {
         await client.commands.get('pwnpost').execute([], message)
     }
+    if (message.channelId === process.env.HEALER_CHANNEL_ID) {
+      await message.react('❤️')
+    }
 
     if (!message.content.startsWith(prefix)) return
 
