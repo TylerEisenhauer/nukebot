@@ -24,7 +24,7 @@ export async function messageCreate(message: Message) {
         'pog': 3
       }
     })
-    if (result.comparative < .3) await message.react('❤️')
+    if (result.comparative < -.3) await message.react('❤️')
   }
 
   if (!message.content.startsWith(prefix)) return
