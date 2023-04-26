@@ -15,9 +15,8 @@ const slashCommand = new SlashCommandBuilder()
 async function executeInteraction(interaction: CommandInteraction) {
   const suggestion = interaction.options.getString('suggestion')
   const channel = await interaction.guild.channels.fetch(process.env.SUGGESTION_CHANNEL_ID) as TextChannel
-  const name = (interaction.member as GuildMember).nickname || interaction.user.username
 
-  await channel.send(`New suggestion from ${name}\n\n${suggestion}`)
+  await channel.send(`New suggestion submitted\n\n${suggestion}`)
 
   return await interaction.reply({
     content: 'Your suggestion has been submitted',
