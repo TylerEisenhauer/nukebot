@@ -1,4 +1,4 @@
 export interface Pwnism {
-    _id?: string
-    quote: string
+  _id?: string
+  quote: string
 }
