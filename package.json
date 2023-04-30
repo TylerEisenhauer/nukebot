@@ -22,7 +22,7 @@
     "erlpack": "^0.1.4",
     "ffmpeg-static": "^4.4.1",
     "lodash": "^4.17.21",
-    "moment": "^2.29.1",
+    "moment": "^2.29.4",
     "mongoose": "^6.2.0",
     "node-cache": "^5.1.2",
     "typescript": "^4.5.5",
