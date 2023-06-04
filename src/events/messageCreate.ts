@@ -20,8 +20,8 @@ export async function messageCreate(message: Message) {
   if (!message.content.startsWith(prefix)) return
 
   const args: string[] = parseArgs(prefix, message.content)
-  const command: string = args.shift().toLowerCase()
+  const command: string = args?.shift().toLowerCase()
 
-  if (command.startsWith(prefix)) return
+  if (!command || command.startsWith(prefix)) return
   await client.commands.get(command)?.execute(args, message)
 }
